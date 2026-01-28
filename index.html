@@ -747,10 +747,7 @@
         <div class="dashboard-container">
             <div class="top-bar">
                 <button class="back-btn" type="button" onclick="backToDashboard()">← Back to Events</button>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn btn-small" type="button" onclick="showAddItem()">+ Add Item</button>
-                    <button class="delete-btn" type="button" onclick="deleteCurrentEvent()">🗑️ Delete Event</button>
-                </div>
+                <button class="delete-btn" type="button" onclick="deleteCurrentEvent()">🗑️ Delete Event</button>
             </div>
 
             <div class="event-header">
@@ -780,7 +777,10 @@
             </div>
 
             <div class="card">
-                <h2>Items</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                    <h2 style="margin: 0;">Items</h2>
+                    <button class="btn btn-small" type="button" onclick="showAddItem()">+ Add Item</button>
+                </div>
                 <div id="itemsGrid" class="items-grid"></div>
             </div>
         </div>
@@ -1336,7 +1336,10 @@
         function deleteCurrentEvent() {
             if (!currentEventId) return;
             
-            if (!confirm('Are you sure you want to delete this event? This cannot be undone.')) {
+            const event = data.events[currentEventId];
+            const confirmMessage = `Are you sure you want to delete "${event.name}"?\n\nThis will permanently delete:\n- The event\n- All ${event.items.length} items\n- All claims\n\nThis action cannot be undone.`;
+            
+            if (!confirm(confirmMessage)) {
                 return;
             }
             
