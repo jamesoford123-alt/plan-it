@@ -163,6 +163,12 @@
             font-size: 0.95em;
         }
 
+        .auth-toggle a {
+            color: #06c;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
         .dashboard {
             min-height: 100vh;
             padding: 40px 20px;
@@ -646,30 +652,74 @@
     <!-- Login Screen -->
     <div id="loginScreen" class="login-wrapper">
         <div class="login-container">
-            <div class="logo">🎉</div>
             <div class="brand">
                 <h1>Plan-it</h1>
                 <p>Plan together, celebrate together</p>
             </div>
             
             <div class="auth-card">
-                <h2>Welcome to Plan-it</h2>
-                
-                <div class="input-group">
-                    <label for="loginPhone">Phone Number</label>
-                    <input type="tel" id="loginPhone" placeholder="(555) 123-4567">
+                <!-- Login Form -->
+                <div id="loginForm">
+                    <h2>Login</h2>
+                    
+                    <div class="input-group">
+                        <label for="loginUsername">Username</label>
+                        <input type="text" id="loginUsername" placeholder="username">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" placeholder="••••••••">
+                    </div>
+                    
+                    <button class="btn" type="button" onclick="loginUser()">Login</button>
+                    <button class="btn btn-secondary" type="button" id="faceIdBtn" onclick="loginWithFaceId()">🔐 Face ID / Touch ID</button>
+                    
+                    <p class="auth-toggle">
+                        Don't have an account? <a onclick="showSignup()">Sign up</a>
+                    </p>
                 </div>
-                
-                <div class="input-group">
-                    <label for="loginName">Your Name</label>
-                    <input type="text" id="loginName" placeholder="Jane Smith">
+
+                <!-- Signup Form -->
+                <div id="signupForm" class="hidden">
+                    <h2>Sign Up</h2>
+                    
+                    <div class="input-group">
+                        <label for="signupFirstName">First Name</label>
+                        <input type="text" id="signupFirstName" placeholder="Jane">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="signupLastName">Last Name</label>
+                        <input type="text" id="signupLastName" placeholder="Smith">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="signupPhone">Phone Number</label>
+                        <input type="tel" id="signupPhone" placeholder="(555) 123-4567">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="signupEmail">Email</label>
+                        <input type="email" id="signupEmail" placeholder="you@example.com">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="signupUsername">Username</label>
+                        <input type="text" id="signupUsername" placeholder="username">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="signupPassword">Password</label>
+                        <input type="password" id="signupPassword" placeholder="••••••••">
+                    </div>
+                    
+                    <button class="btn" type="button" onclick="signupUser()">Create Account</button>
+                    
+                    <p class="auth-toggle">
+                        Already have an account? <a onclick="showLogin()">Login</a>
+                    </p>
                 </div>
-                
-                <button class="btn" type="button" onclick="login()">Get Started</button>
-                
-                <p class="auth-toggle">
-                    Start planning events in seconds!
-                </p>
             </div>
         </div>
     </div>
@@ -828,25 +878,101 @@
             localStorage.setItem('planitData', JSON.stringify(data));
         }
 
-        function login() {
-            const phone = document.getElementById('loginPhone').value.trim();
-            const name = document.getElementById('loginName').value.trim();
+        function showSignup() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('signupForm').classList.remove('hidden');
+        }
+
+        function showLogin() {
+            document.getElementById('signupForm').classList.add('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+        }
+
+        function signupUser() {
+            const firstName = document.getElementById('signupFirstName').value.trim();
+            const lastName = document.getElementById('signupLastName').value.trim();
+            const phone = document.getElementById('signupPhone').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const username = document.getElementById('signupUsername').value.trim();
+            const password = document.getElementById('signupPassword').value.trim();
             
-            if (!phone || !name) {
-                alert('Please enter both your phone number and name');
+            if (!firstName || !lastName || !phone || !email || !username || !password) {
+                alert('Please fill in all fields');
                 return;
             }
             
-            const userId = phone.replace(/[^0-9]/g, '');
-            currentUser = {id: userId, phone: phone, name: name};
-            
-            if (!data.users[userId]) {
-                data.users[userId] = {id: userId, phone: phone, name: name, events: []};
+            // Check if username exists
+            if (data.users[username]) {
+                alert('Username already exists. Please choose another.');
+                return;
             }
+            
+            // Create new user
+            const userId = username;
+            currentUser = {
+                id: userId,
+                username: username,
+                password: password, // In production, this would be hashed
+                firstName: firstName,
+                lastName: lastName,
+                phone: phone,
+                email: email,
+                name: firstName + ' ' + lastName
+            };
+            
+            data.users[userId] = {
+                ...currentUser,
+                events: []
+            };
             
             localStorage.setItem('planitCurrentUser', JSON.stringify(currentUser));
             saveData();
+            
+            // Clear form
+            document.getElementById('signupFirstName').value = '';
+            document.getElementById('signupLastName').value = '';
+            document.getElementById('signupPhone').value = '';
+            document.getElementById('signupEmail').value = '';
+            document.getElementById('signupUsername').value = '';
+            document.getElementById('signupPassword').value = '';
+            
             showDashboard();
+        }
+
+        function loginUser() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            
+            if (!username || !password) {
+                alert('Please enter username and password');
+                return;
+            }
+            
+            const user = data.users[username];
+            
+            if (!user || user.password !== password) {
+                alert('Invalid username or password');
+                return;
+            }
+            
+            currentUser = user;
+            localStorage.setItem('planitCurrentUser', JSON.stringify(currentUser));
+            
+            // Clear form
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+            
+            showDashboard();
+        }
+
+        function loginWithFaceId() {
+            // Check if biometric authentication is available
+            if ('credentials' in navigator && 'create' in navigator.credentials) {
+                alert('Face ID/Touch ID login will be available on iPhone/iPad when you install this as a Progressive Web App (PWA). For now, use username and password.');
+            } else {
+                alert('Biometric authentication is not available in this browser. Please use username and password.');
+            }
+            // In production with native app, this would trigger actual Face ID
         }
 
         function logout() {
@@ -999,15 +1125,28 @@
         }
 
         function showAddItem() {
+            console.log('showAddItem called, currentEventId:', currentEventId);
+            if (!currentEventId) {
+                alert('Error: No event selected');
+                return;
+            }
             document.getElementById('addItemModal').classList.remove('hidden');
         }
 
         function addItem() {
+            console.log('addItem function called');
             const name = document.getElementById('itemName').value.trim();
             const emoji = document.getElementById('itemEmoji').value.trim() || '🎁';
             
+            console.log('Item name:', name, 'Emoji:', emoji);
+            
             if (!name) {
                 alert('Please enter an item name');
+                return;
+            }
+            
+            if (!currentEventId) {
+                alert('Error: No event selected');
                 return;
             }
             
@@ -1023,6 +1162,8 @@
             
             data.events[currentEventId].items.push(itemId);
             saveData();
+            
+            console.log('Item added successfully:', data.items[itemId]);
             
             document.getElementById('itemName').value = '';
             document.getElementById('itemEmoji').value = '';
